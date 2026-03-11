@@ -10,22 +10,6 @@ BLUESKY_PASS = os.getenv('BLUESKY_PASSWORD')
 API_URL = "https://chaturbate.com/affiliates/api/onlinerooms/?format=json&wm=T2CSW"
 MAX_POSTS_PER_RUN = 4
 
-# === DEBUG & SAFETY CHECK ===
-print("=== BLUESKY BOT DEBUG ===")
-print(f"BLUESKY_HANDLE = {repr(BLUESKY_HANDLE)}")
-print(f"BLUESKY_PASSWORD set = {bool(BLUESKY_PASS)} (length: {len(BLUESKY_PASS) if BLUESKY_PASS else 0})")
-print("========================")
-
-if not BLUESKY_HANDLE or not BLUESKY_PASS:
-    raise ValueError(
-        "❌ MISSING CREDENTIALS\n\n"
-        "1. Go to GitHub → Settings → Secrets and variables → Actions\n"
-        "2. Add TWO secrets:\n"
-        "   • BLUESKY_HANDLE → your full handle (e.g. yourcambot.bsky.social)\n"
-        "   • BLUESKY_PASSWORD → your Bluesky App Password\n"
-        "3. Re-run the workflow"
-    )
-
 def get_niche_label(room):
     age = room.get('age')
     tags_lower = [t.lower() for t in room.get('tags', [])]
@@ -42,19 +26,9 @@ def get_niche_label(room):
         return "Pinay"
     return "Hot"
 
-def make_hashtags(tags_list):
-    hashtags = []
-    for tag in tags_list[:5]:
-        clean = tag.strip().replace(' ', '')
-        if clean:
-            hashtags.append(f"#{clean.title()}")
-    return ' '.join(hashtags)
-
 def main():
     client = Client()
-    print("🔑 Logging into Bluesky...")
-    client.login(BLUESKY_HANDLE, BLUESKY_PASS)   # ← now safe
-    print("✅ Bluesky login successful!")
+    client.login(BLUESKY_HANDLE, BLUESKY_PASS)
 
     data = requests.get(API_URL).json()
 
@@ -79,14 +53,33 @@ def main():
 
             niche = get_niche_label(room)
             subject = room['room_subject'][:70] + '...' if len(room['room_subject']) > 70 else room['room_subject']
-            extra_tags = make_hashtags(room.get('tags', []))
 
+            # === RICH TEXT WITH CLICKABLE LINK + CLICKABLE HASHTAGS ===
             tb = client_utils.TextBuilder()
             tb.text(f"🔥 {niche} LIVE NOW ({room['num_users']} watching)\n\n")
             tb.text(f"{room['username']} • {room.get('age') or '?'} • {room.get('country') or '??'}\n")
             tb.text(f"{subject}\n\n")
             tb.link("👉 Watch FREE", room['chat_room_url_revshare'])
-            tb.text(f"\n\n#Chaturbate #{niche} #CamGirls #LiveCams #Adult {extra_tags}")
+            tb.text("\n\n")
+
+            # Fixed hashtags (always clickable)
+            tb.tag("#Chaturbate", "Chaturbate")
+            tb.text(" ")
+            tb.tag(f"#{niche}", niche)
+            tb.text(" ")
+            tb.tag("#CamGirls", "CamGirls")
+            tb.text(" ")
+            tb.tag("#LiveCams", "LiveCams")
+            tb.text(" ")
+            tb.tag("#Adult", "Adult")
+
+            # Dynamic room tags as clickable hashtags (max 5)
+            tags = room.get('tags', [])[:5]
+            for tag in tags:
+                clean = tag.strip().replace(' ', '')
+                if clean:
+                    tb.text(" ")
+                    tb.tag(f"#{clean.title()}", clean.title())
 
             client.send_image(
                 text=tb,
