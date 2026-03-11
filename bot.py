@@ -62,11 +62,11 @@ def main():
             tb.text("\n\n")
 
             # Clickable hashtags
-            tb.tag("#Chaturbate", "Chaturbate")
+            tb.tag("#nsfw", "nsfw")
             tb.text(" ")
             tb.tag(f"#{niche}", niche)
             tb.text(" ")
-            tb.tag("#CamGirls", "CamGirls")
+            tb.tag("#nsfwsky", "nsfwsky")
             tb.text(" ")
             tb.tag("#LiveCams", "LiveCams")
             tb.text(" ")
