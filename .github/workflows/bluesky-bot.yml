@@ -9,7 +9,7 @@ on:
     # │ │ │ │ ┌───────────── day of week (0 - 6) (Sunday=0 or 7)
     # │ │ │ │ │
     # │ │ │ │ │
-    - cron: '12 */3 * * *'     # every 3 hours, at :12 past the hour (e.g. 00:12, 03:12, 06:12, …)
+    - cron: '12 */1 * * *'     # every 3 hours, at :12 past the hour (e.g. 00:12, 03:12, 06:12, …)
   
   workflow_dispatch:           # allows manual trigger from GitHub Actions tab
 
